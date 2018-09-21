@@ -1128,10 +1128,12 @@ class AMP_Validation_Error_Taxonomy {
 		$screen_base = get_current_screen()->base;
 
 		if ( 'edit-tags' === $screen_base ) {
-			$total_term_count        = self::get_validation_error_count();
+			$new_rejected_term_count = self::get_validation_error_count( array( 'group' => array( self::VALIDATION_ERROR_NEW_REJECTED_STATUS ) ) );
+			$new_accepted_term_count = self::get_validation_error_count( array( 'group' => array( self::VALIDATION_ERROR_NEW_ACCEPTED_STATUS ) ) );
 			$ack_rejected_term_count = self::get_validation_error_count( array( 'group' => array( self::VALIDATION_ERROR_ACK_REJECTED_STATUS ) ) );
 			$ack_accepted_term_count = self::get_validation_error_count( array( 'group' => array( self::VALIDATION_ERROR_ACK_ACCEPTED_STATUS ) ) );
-			$new_term_count          = $total_term_count - $ack_rejected_term_count - $ack_accepted_term_count;
+//			$total_term_count        = $new_rejected_term_count + $new_accepted_term_count + $new_accepted_term_count + $ack_accepted_term_count;
+			$new_term_count          = $new_rejected_term_count + $new_accepted_term_count;
 
 		} elseif ( 'edit' === $screen_base ) {
 			$args = array(
@@ -1158,13 +1160,23 @@ class AMP_Validation_Error_Taxonomy {
 
 			$with_rejected_query     = new WP_Query( array_merge(
 				$args,
-				array( self::VALIDATION_ERROR_STATUS_QUERY_VAR => self::VALIDATION_ERROR_ACK_REJECTED_STATUS )
+				array(
+					self::VALIDATION_ERROR_STATUS_QUERY_VAR => array(
+						self::VALIDATION_ERROR_ACK_REJECTED_STATUS,
+						self::VALIDATION_ERROR_NEW_REJECTED_STATUS,
+					),
+				)
 			) );
 			$ack_rejected_term_count = $with_rejected_query->found_posts;
 
 			$with_accepted_query     = new WP_Query( array_merge(
 				$args,
-				array( self::VALIDATION_ERROR_STATUS_QUERY_VAR => self::VALIDATION_ERROR_ACK_ACCEPTED_STATUS )
+				array(
+					self::VALIDATION_ERROR_STATUS_QUERY_VAR => array(
+						self::VALIDATION_ERROR_ACK_ACCEPTED_STATUS,
+						self::VALIDATION_ERROR_NEW_ACCEPTED_STATUS,
+					),
+				)
 			) );
 			$ack_accepted_term_count = $with_accepted_query->found_posts;
 		} else {
@@ -1241,7 +1253,7 @@ class AMP_Validation_Error_Taxonomy {
 					number_format_i18n( $ack_accepted_term_count )
 				);
 			}
-			$value = self::VALIDATION_ERROR_ACK_ACCEPTED_STATUS;
+			$value = self::VALIDATION_ERROR_NEW_ACCEPTED_STATUS . ',' . self::VALIDATION_ERROR_ACK_ACCEPTED_STATUS;
 			?>
 			<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $error_status_filter_value, $value ); ?>><?php echo wp_kses_post( $accepted_term_text ); ?></option>
 			<?php
@@ -1270,7 +1282,7 @@ class AMP_Validation_Error_Taxonomy {
 					number_format_i18n( $ack_rejected_term_count )
 				);
 			}
-			$value = self::VALIDATION_ERROR_ACK_REJECTED_STATUS;
+			$value = self::VALIDATION_ERROR_NEW_REJECTED_STATUS . ',' . self::VALIDATION_ERROR_ACK_REJECTED_STATUS;
 			?>
 			<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $error_status_filter_value, $value ); ?>><?php echo wp_kses_post( $rejected_term_text ); ?></option>
 		</select>
