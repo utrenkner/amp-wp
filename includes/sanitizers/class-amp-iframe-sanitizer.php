@@ -40,13 +40,16 @@ class AMP_Iframe_Sanitizer extends AMP_Base_Sanitizer {
 	public static $tag = 'iframe';
 
 	/**
-	 * Default args.
+	 * Get default args.
 	 *
-	 * @var array
+	 * @since 1.1
+	 * @return array Default args.
 	 */
-	protected $DEFAULT_ARGS = array(
-		'add_placeholder' => false,
-	);
+	public static function get_default_args() {
+		return array(
+			'add_placeholder' => false,
+		);
+	}
 
 	/**
 	 * Get mapping of HTML selectors to the AMP component selectors which they may be converted into.

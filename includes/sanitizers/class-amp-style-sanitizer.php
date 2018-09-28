@@ -64,24 +64,6 @@ class AMP_Style_Sanitizer extends AMP_Base_Sanitizer {
 	protected $args;
 
 	/**
-	 * Default args.
-	 *
-	 * @var array
-	 */
-	protected $DEFAULT_ARGS = array(
-		'remove_unused_rules'       => 'sometimes',
-		'dynamic_element_selectors' => array(
-			'amp-list',
-			'amp-live-list',
-			'[submit-error]',
-			'[submit-success]',
-		),
-		'should_locate_sources'     => false,
-		'parsed_cache_variant'      => null,
-		'accept_tree_shaking'       => false,
-	);
-
-	/**
 	 * Stylesheets.
 	 *
 	 * Values are the CSS stylesheets. Keys are MD5 hashes of the stylesheets,
@@ -227,6 +209,27 @@ class AMP_Style_Sanitizer extends AMP_Base_Sanitizer {
 	 * @var array
 	 */
 	private $selector_mappings = array();
+
+	/**
+	 * Get default args.
+	 *
+	 * @since 1.1
+	 * @return array Default args.
+	 */
+	public static function get_default_args() {
+		return array(
+			'remove_unused_rules'       => 'sometimes',
+			'dynamic_element_selectors' => array(
+				'amp-list',
+				'amp-live-list',
+				'[submit-error]',
+				'[submit-success]',
+			),
+			'should_locate_sources'     => false,
+			'parsed_cache_variant'      => null,
+			'accept_tree_shaking'       => false,
+		);
+	}
 
 	/**
 	 * Get error codes that can be raised during parsing of CSS.

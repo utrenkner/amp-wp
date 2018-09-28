@@ -632,6 +632,36 @@ function amp_get_content_sanitizers( $post = null ) {
 		$post = null;
 	}
 
+	$sanitizers = array(
+		'AMP_Core_Theme_Sanitizer'        => array(
+			'template'   => get_template(),
+			'stylesheet' => get_stylesheet(),
+		),
+		'AMP_Img_Sanitizer'               => array(),
+		'AMP_Form_Sanitizer'              => array(),
+		'AMP_Comments_Sanitizer'          => array(),
+		'AMP_Video_Sanitizer'             => array(),
+		'AMP_O2_Player_Sanitizer'         => array(),
+		'AMP_Audio_Sanitizer'             => array(),
+		'AMP_Playbuzz_Sanitizer'          => array(),
+		'AMP_Embed_Sanitizer'             => array(),
+		'AMP_Iframe_Sanitizer'            => array(
+			'add_placeholder' => true,
+		),
+		'AMP_Gallery_Block_Sanitizer'     => array(), // Note: Gallery block sanitizer must come after image sanitizers since itś logic is using the already sanitized images.
+		'AMP_Block_Sanitizer'             => array(), // Note: Block sanitizer must come after embed / media sanitizers since it's logic is using the already sanitized content.
+		'AMP_Script_Sanitizer'            => array(),
+		'AMP_Style_Sanitizer'             => array(),
+		'AMP_Tag_And_Attribute_Sanitizer' => array(), // Note: This whitelist sanitizer must come at the end to clean up any remaining issues the other sanitizers didn't catch.
+	);
+
+	// @todo This doesn't help for classes that get added via amp_content_sanitizers. Does that matter?
+	foreach ( $sanitizers as $sanitizer_class => &$sanitizer_args ) {
+		if ( method_exists( $sanitizer_class, 'get_default_args' ) ) {
+			$sanitizer_args = array_merge( $sanitizer_class::get_default_args(), $sanitizer_args );
+		}
+	}
+
 	/**
 	 * Filters the content sanitizers.
 	 *
@@ -641,33 +671,7 @@ function amp_get_content_sanitizers( $post = null ) {
 	 * @param array   $handlers Handlers.
 	 * @param WP_Post $post     Post. Deprecated.
 	 */
-	$sanitizers = apply_filters( 'amp_content_sanitizers',
-		array(
-			'AMP_Core_Theme_Sanitizer'        => array(
-				'template'   => get_template(),
-				'stylesheet' => get_stylesheet(),
-			),
-			'AMP_Img_Sanitizer'               => array(),
-			'AMP_Form_Sanitizer'              => array(),
-			'AMP_Comments_Sanitizer'          => array(),
-			'AMP_Video_Sanitizer'             => array(),
-			'AMP_O2_Player_Sanitizer'         => array(),
-			'AMP_Audio_Sanitizer'             => array(),
-			'AMP_Playbuzz_Sanitizer'          => array(),
-			'AMP_Embed_Sanitizer'             => array(),
-			'AMP_Iframe_Sanitizer'            => array(
-				'add_placeholder' => true,
-			),
-			'AMP_Gallery_Block_Sanitizer'     => array( // Note: Gallery block sanitizer must come after image sanitizers since itś logic is using the already sanitized images.
-				'carousel_required' => ! current_theme_supports( AMP_Theme_Support::SLUG ), // For back-compat.
-			),
-			'AMP_Block_Sanitizer'             => array(), // Note: Block sanitizer must come after embed / media sanitizers since it's logic is using the already sanitized content.
-			'AMP_Script_Sanitizer'            => array(),
-			'AMP_Style_Sanitizer'             => array(),
-			'AMP_Tag_And_Attribute_Sanitizer' => array(), // Note: This whitelist sanitizer must come at the end to clean up any remaining issues the other sanitizers didn't catch.
-		),
-		$post
-	);
+	$sanitizers = apply_filters( 'amp_content_sanitizers', $sanitizers, $post );
 
 	// Force style sanitizer and whitelist sanitizer to be at end.
 	foreach ( array( 'AMP_Style_Sanitizer', 'AMP_Tag_And_Attribute_Sanitizer' ) as $class_name ) {

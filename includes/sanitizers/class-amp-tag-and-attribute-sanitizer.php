@@ -70,15 +70,6 @@ class AMP_Tag_And_Attribute_Sanitizer extends AMP_Base_Sanitizer {
 	private $stack = array();
 
 	/**
-	 * Default args.
-	 *
-	 * @since 0.5
-	 *
-	 * @var array
-	 */
-	protected $DEFAULT_ARGS = array();
-
-	/**
 	 * AMP script components that are discovered being required through sanitization.
 	 *
 	 * @var string[]
@@ -93,6 +84,21 @@ class AMP_Tag_And_Attribute_Sanitizer extends AMP_Base_Sanitizer {
 	protected $should_not_replace_nodes = array();
 
 	/**
+	 * Get default args.
+	 *
+	 * @since 1.1
+	 * @return array Default args.
+	 */
+	public static function get_default_args() {
+		return array(
+			'amp_allowed_tags'                => AMP_Allowed_Tags_Generated::get_allowed_tags(),
+			'amp_globally_allowed_attributes' => AMP_Allowed_Tags_Generated::get_allowed_attributes(),
+			'amp_layout_allowed_attributes'   => AMP_Allowed_Tags_Generated::get_layout_attributes(),
+			'amp_bind_placeholder_prefix'     => AMP_DOM_Utils::get_amp_bind_placeholder_prefix(),
+		);
+	}
+
+	/**
 	 * AMP_Tag_And_Attribute_Sanitizer constructor.
 	 *
 	 * @since 0.5
@@ -101,13 +107,6 @@ class AMP_Tag_And_Attribute_Sanitizer extends AMP_Base_Sanitizer {
 	 * @param array       $args Args.
 	 */
 	public function __construct( $dom, $args = array() ) {
-		$this->DEFAULT_ARGS = array(
-			'amp_allowed_tags'                => AMP_Allowed_Tags_Generated::get_allowed_tags(),
-			'amp_globally_allowed_attributes' => AMP_Allowed_Tags_Generated::get_allowed_attributes(),
-			'amp_layout_allowed_attributes'   => AMP_Allowed_Tags_Generated::get_layout_attributes(),
-			'amp_bind_placeholder_prefix'     => AMP_DOM_Utils::get_amp_bind_placeholder_prefix(),
-		);
-
 		parent::__construct( $dom, $args );
 
 		if ( ! empty( $this->args['allow_dirty_styles'] ) ) {
