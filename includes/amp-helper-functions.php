@@ -632,33 +632,29 @@ function amp_get_content_sanitizers( $post = null ) {
 		$post = null;
 	}
 
-	$sanitizers = array(
-		'AMP_Core_Theme_Sanitizer'        => array(
-			'template'   => get_template(),
-			'stylesheet' => get_stylesheet(),
-		),
-		'AMP_Img_Sanitizer'               => array(),
-		'AMP_Form_Sanitizer'              => array(),
-		'AMP_Comments_Sanitizer'          => array(),
-		'AMP_Video_Sanitizer'             => array(),
-		'AMP_O2_Player_Sanitizer'         => array(),
-		'AMP_Audio_Sanitizer'             => array(),
-		'AMP_Playbuzz_Sanitizer'          => array(),
-		'AMP_Embed_Sanitizer'             => array(),
-		'AMP_Iframe_Sanitizer'            => array(
-			'add_placeholder' => true,
-		),
-		'AMP_Gallery_Block_Sanitizer'     => array(), // Note: Gallery block sanitizer must come after image sanitizers since itś logic is using the already sanitized images.
-		'AMP_Block_Sanitizer'             => array(), // Note: Block sanitizer must come after embed / media sanitizers since it's logic is using the already sanitized content.
-		'AMP_Script_Sanitizer'            => array(),
-		'AMP_Style_Sanitizer'             => array(),
-		'AMP_Tag_And_Attribute_Sanitizer' => array(), // Note: This whitelist sanitizer must come at the end to clean up any remaining issues the other sanitizers didn't catch.
+	$sanitizer_classes = array(
+		'AMP_Core_Theme_Sanitizer',
+		'AMP_Img_Sanitizer',
+		'AMP_Form_Sanitizer',
+		'AMP_Comments_Sanitizer',
+		'AMP_Video_Sanitizer',
+		'AMP_O2_Player_Sanitizer',
+		'AMP_Audio_Sanitizer',
+		'AMP_Playbuzz_Sanitizer',
+		'AMP_Embed_Sanitizer',
+		'AMP_Iframe_Sanitizer',
+		'AMP_Gallery_Block_Sanitizer', // Note: Gallery block sanitizer must come after image sanitizers since itś logic is using the already sanitized images.
+		'AMP_Block_Sanitizer', // Note: Block sanitizer must come after embed / media sanitizers since it's logic is using the already sanitized content.
+		'AMP_Script_Sanitizer', // Note: This whitelist sanitizer must come at the end to clean up any remaining issues the other sanitizers didn't catch.
+		'AMP_Style_Sanitizer', // Always penultimate.
+		'AMP_Tag_And_Attribute_Sanitizer', // Always ultimate.
 	);
 
 	// @todo This doesn't help for classes that get added via amp_content_sanitizers. Does that matter?
-	foreach ( $sanitizers as $sanitizer_class => &$sanitizer_args ) {
+	$sanitizers = array();
+	foreach ( $sanitizer_classes as $sanitizer_class ) {
 		if ( method_exists( $sanitizer_class, 'get_default_args' ) ) {
-			$sanitizer_args = array_merge( $sanitizer_class::get_default_args(), $sanitizer_args );
+			$sanitizers[ $sanitizer_class ] = $sanitizer_class::get_default_args();
 		}
 	}
 

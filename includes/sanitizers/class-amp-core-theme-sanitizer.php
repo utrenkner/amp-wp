@@ -29,6 +29,19 @@ class AMP_Core_Theme_Sanitizer extends AMP_Base_Sanitizer {
 	protected $args;
 
 	/**
+	 * Get default args.
+	 *
+	 * @since 1.1
+	 * @return array Default args.
+	 */
+	public static function get_default_args() {
+		return array(
+			'template'   => get_template(),
+			'stylesheet' => get_stylesheet(),
+		);
+	}
+
+	/**
 	 * Body element.
 	 *
 	 * @since 1.0
