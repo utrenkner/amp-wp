@@ -46,8 +46,8 @@ class AMP_Twitter_Embed_Handler extends AMP_Base_Embed_Handler {
 	 * Register embed.
 	 */
 	public function register_embed() {
+		add_filter( 'embed_oembed_html', array( $this, 'filter_embed_oembed_html' ), 10, 2 );
 		add_shortcode( 'tweet', array( $this, 'shortcode' ) ); // Note: This is a Jetpack shortcode.
-		wp_embed_register_handler( 'amp-twitter', self::URL_PATTERN, array( $this, 'oembed' ), -1 );
 		wp_embed_register_handler( 'amp-twitter-timeline', self::URL_PATTERN_TIMELINE, array( $this, 'oembed_timeline' ), -1 );
 	}
 
@@ -55,9 +55,40 @@ class AMP_Twitter_Embed_Handler extends AMP_Base_Embed_Handler {
 	 * Unregister embed.
 	 */
 	public function unregister_embed() {
+		remove_filter( 'embed_oembed_html', array( $this, 'filter_embed_oembed_html' ) );
 		remove_shortcode( 'tweet' ); // Note: This is a Jetpack shortcode.
-		wp_embed_unregister_handler( 'amp-twitter', -1 );
 		wp_embed_unregister_handler( 'amp-twitter-timeline', -1 );
+	}
+
+	/**
+	 * Filter oEmbed HTML for Tumblr to prepare it for AMP.
+	 *
+	 * @param string $cache Cache for oEmbed.
+	 * @param string $url   Embed URL.
+	 * @return string Embed.
+	 */
+	public function filter_embed_oembed_html( $cache, $url ) {
+		$parsed_url = wp_parse_url( $url );
+		if ( false === strpos( $parsed_url['host'], 'twitter.com' ) ) {
+			return $cache;
+		}
+
+		if ( ! preg_match( '#^https?://twitter.com/.+/status/(\d+)#', $url, $matches ) ) {
+			return $cache;
+		}
+		$tweet_id = $matches[1];
+
+		$cache = preg_replace(
+			'#(<blockquote[^>]+?twitter-tweet[^>]+)(>.+)<script.*$#',
+			sprintf(
+				'<amp-twitter width="%d" height="%d" layout="responsive" data-tweetid="%s">$1 placeholder $2</amp-twitter>',
+				esc_attr( $this->DEFAULT_WIDTH ),
+				esc_attr( $this->DEFAULT_HEIGHT ),
+				esc_attr( $tweet_id )
+			),
+			$cache
+		);
+		return $cache;
 	}
 
 	/**
@@ -107,12 +138,14 @@ class AMP_Twitter_Embed_Handler extends AMP_Base_Embed_Handler {
 	/**
 	 * Render oEmbed.
 	 *
+	 * @deprecated Since 1.1 as now the sanitize_raw_embeds() is used exclusively, allowing the original oEmbed response to be rapped by amp-twitter.
 	 * @see \WP_Embed::shortcode()
 	 *
 	 * @param array $matches URL pattern matches.
 	 * @return string Rendered oEmbed.
 	 */
 	public function oembed( $matches ) {
+		_deprecated_function( __FUNCTION__, '1.1' );
 		$id = false;
 
 		if ( isset( $matches['tweet'] ) && is_numeric( $matches['tweet'] ) ) {
@@ -209,6 +242,10 @@ class AMP_Twitter_Embed_Handler extends AMP_Base_Embed_Handler {
 	 * @return bool Whether node is for raw embed.
 	 */
 	private function is_tweet_raw_embed( $node ) {
+		if ( $node->parentNode && 'amp-twitter' === $node->parentNode->nodeName ) {
+			return false;
+		}
+
 		$class_attr = $node->getAttribute( 'class' );
 
 		return null !== $class_attr && false !== strpos( $class_attr, 'twitter-tweet' );
@@ -232,6 +269,11 @@ class AMP_Twitter_Embed_Handler extends AMP_Base_Embed_Handler {
 			'layout'       => 'responsive',
 			'data-tweetid' => $tweet_id,
 		) );
+
+		$placeholder = $node->cloneNode( true );
+		$placeholder->setAttribute( 'placeholder', '' );
+
+		$new_node->appendChild( $placeholder );
 
 		$this->sanitize_embed_script( $node );
 
